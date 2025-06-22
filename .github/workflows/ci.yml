@@ -1,4 +1,4 @@
-name: Module Tests
+name: CI
 
 on:
   push:
@@ -8,66 +8,72 @@ on:
 
 env:
   UPSTREAM_REPO: "noseglasses/elf_diff"
-  PYTHON_VERSION: "3.10"
 
 jobs:
-  linux:
-    name: Coverage
+  test-linux:
+    name: Test & Coverage on Linux (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
     steps:
-      - name: "Set up Python ${{ env.PYTHON_VERSION }}"
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: "${{ env.PYTHON_VERSION }}"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install Ubuntu packages
         run: |
           sudo apt update
-          sudo apt install -y python3-pip
           sudo apt install -y g++-arm-linux-gnueabi binutils-arm-linux-gnueabi
 
-      - name: "Check out code"
-        uses: actions/checkout@v3
-
-      - name: Install packages
+      - name: Install Python dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install .[test]
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           mkdir test_output
           cd test_output
-          # This uses the coverage module under the hood to gain coverage info of invoked subprocesses
           python3 -m coverage run --branch --parallel-mode ../tests/test_main.py -c
 
-      - name: Combine coverage
+      - name: Combine coverage (only on Python 3.10)
+        if: matrix.python-version == '3.10'
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage combine * */*
 
-      - name: Convert coverage
+      - name: Convert coverage to XML (only on Python 3.10)
+        if: matrix.python-version == '3.10'
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage xml
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverage artifact (only on Python 3.10)
+        if: matrix.python-version == '3.10'
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: test_output/coverage.xml
 
-      - name: "Upload coverage to Codecov"
+      - name: Upload coverage to Codecov (only on Python 3.10, upstream repo)
+        if: matrix.python-version == '3.10' && github.repository == env.UPSTREAM_REPO
         uses: codecov/codecov-action@v2
-        if: ${{ github.repository }} == ${{ env.UPSTREAM_REPO }} # Only upload coverage for the upstream repo
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          verbose: true # optional (default = false)
+          verbose: true
 
-  windows:
+  test-windows:
+    name: Test on Windows (Python 3.10)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -90,11 +96,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade cffi
-          python -m pip install .[tests]
+          python -m pip install .[test]
       - name: Test
         shell: bash
         run: |
-          export PATH="${PATH}:/c/tools/msys64/mingw64/bin:/c/msys64/usr/bin" # Ensure that gtk3 dlls are found
+          export PATH="${PATH}:/c/tools/msys64/mingw64/bin:/c/msys64/usr/bin"
           mkdir test_output
           cd test_output
           python ../tests/test_main.py
