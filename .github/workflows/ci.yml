@@ -8,6 +8,7 @@ on:
 
 env:
   UPSTREAM_REPO: "noseglasses/elf_diff"
+  COVERAGE_PYTHON_VERSION: "3.10"
 
 jobs:
   test-linux:
@@ -43,29 +44,29 @@ jobs:
           cd test_output
           python3 -m coverage run --branch --parallel-mode ../tests/test_main.py -c
 
-      - name: Combine coverage (only on Python 3.10)
-        if: matrix.python-version == '3.10'
+      - name: Combine coverage (only on selected coverage Python version)
+        if: matrix.python-version == env.COVERAGE_PYTHON_VERSION
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage combine * */*
 
-      - name: Convert coverage to XML (only on Python 3.10)
-        if: matrix.python-version == '3.10'
+      - name: Convert coverage to XML (only on selected coverage Python version)
+        if: matrix.python-version == env.COVERAGE_PYTHON_VERSION
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage xml
 
-      - name: Upload coverage artifact (only on Python 3.10)
-        if: matrix.python-version == '3.10'
+      - name: Upload coverage artifact (only on selected coverage Python version)
+        if: matrix.python-version == env.COVERAGE_PYTHON_VERSION
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: test_output/coverage.xml
 
-      - name: Upload coverage to Codecov (only on Python 3.10, upstream repo)
-        if: matrix.python-version == '3.10' && github.repository == env.UPSTREAM_REPO
+      - name: Upload coverage to Codecov (only on selected coverage Python version, upstream repo)
+        if: matrix.python-version == env.COVERAGE_PYTHON_VERSION && github.repository == env.UPSTREAM_REPO
         uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
