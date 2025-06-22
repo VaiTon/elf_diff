@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  UPSTREAM_REPO: "noseglasses/elf_diff"
+
 jobs:
   linux:
     runs-on: ubuntu-latest
@@ -42,12 +45,13 @@ jobs:
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: test_output/coverage.xml
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v2
+        if: ${{ github.repository }} == ${{ env.UPSTREAM_REPO }} # Only upload coverage for the upstream repo
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
