@@ -8,48 +8,57 @@ on:
 
 env:
   UPSTREAM_REPO: "noseglasses/elf_diff"
+  PYTHON_VERSION: "3.10"
 
 jobs:
   linux:
+    name: Coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
+      - name: "Set up Python ${{ env.PYTHON_VERSION }}"
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "${{ env.PYTHON_VERSION }}"
+
       - name: Install Ubuntu packages
         run: |
           sudo apt update
           sudo apt install -y python3-pip
           sudo apt install -y g++-arm-linux-gnueabi binutils-arm-linux-gnueabi
-      - name: Install dependencies
+
+      - name: "Check out code"
+        uses: actions/checkout@v3
+
+      - name: Install packages
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install .[test]
 
-      - name: Prepare tests
-        run: |
-          mkdir test_output
       - name: Run tests
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
+          mkdir test_output
           cd test_output
-          python3 -m coverage run --branch --parallel-mode ../tests/test_main.py -c # This uses the coverage module under the hood to gain coverage info of invoked subprocesses
+          # This uses the coverage module under the hood to gain coverage info of invoked subprocesses
+          python3 -m coverage run --branch --parallel-mode ../tests/test_main.py -c
+
       - name: Combine coverage
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage combine * */*
+
       - name: Convert coverage
         run: |
           export COVERAGE_RCFILE=$PWD/.coveragerc
           cd test_output
           python3 -m coverage xml
+
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: test_output/coverage.xml
+
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v2
         if: ${{ github.repository }} == ${{ env.UPSTREAM_REPO }} # Only upload coverage for the upstream repo
@@ -57,6 +66,7 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           verbose: true # optional (default = false)
+
   windows:
     runs-on: windows-latest
     steps:
