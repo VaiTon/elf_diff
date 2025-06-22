@@ -26,7 +26,8 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install .[tests]
+          python3 -m pip install .[test]
+
       - name: Prepare tests
         run: |
           mkdir test_output
