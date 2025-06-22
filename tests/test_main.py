@@ -39,8 +39,6 @@ if __name__ == "__main__":
     # Import and run any test_cases found in subdirectory
     loader = unittest.TestLoader()
 
-    all_tests = False
-
     if args.test_case is None:
         tests = loader.discover(os.path.join(module_dir, "test_cases"))
     else:

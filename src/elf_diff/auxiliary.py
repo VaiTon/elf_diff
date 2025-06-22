@@ -21,7 +21,7 @@
 import inspect
 import os
 import re
-from distutils import dir_util
+import shutil
 from typing import List, Set
 
 
@@ -62,7 +62,18 @@ def getRelpath(html_output_file: str, target_dir: str) -> str:
 
 def recursiveCopy(source_dir: str, target_dir: str) -> None:
     """Copy the content of a source directory recursively (including subdirectories) to a target directory"""
-    dir_util.copy_tree(source_dir, target_dir)
+    # shutil.copytree requires that target_dir does not exist, so we mimic distutils behavior
+    if not os.path.exists(target_dir):
+        shutil.copytree(source_dir, target_dir)
+    else:
+        # Copy contents of source_dir into target_dir
+        for item in os.listdir(source_dir):
+            s = os.path.join(source_dir, item)
+            d = os.path.join(target_dir, item)
+            if os.path.isdir(s):
+                recursiveCopy(s, d)
+            else:
+                shutil.copy2(s, d)
 
 
 def isNameToken(str_: str) -> bool:

@@ -1,2 +1,22 @@
 **/__pycache__/
 *.py.orig
+
+# Python cache and build artifacts
+*.pyc
+*.pyo
+*.pyd
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+__pycache__/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/

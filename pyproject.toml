@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elf_diff"
+version = "0.7.1"
+description = "A tool to compare elf binaries"
+readme = "README.md"
+requires-python = ">=3.6"
+license = "GPL-3.0-or-later"
+authors = [{ name = "noseglasses", email = "shinynoseglasses@gmail.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Bug Tracking",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Utilities",
+    "Topic :: Education",
+]
+dependencies = [
+    "setuptools-git",
+    "jinja2",
+    "pyyaml",
+    "progressbar2",
+    "GitPython",
+    "weasyprint",
+    "anytree",
+    "dict2xml",
+]
+
+[project.urls]
+Homepage = "https://github.com/noseglasses/elf_diff"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["__pycache__/*"]
+
+[project.optional-dependencies]
+test = ["coverage >= 6.1.2", "deepdiff >= 5.6.0", "beautifulsoup4 >= 4.10.0"]
